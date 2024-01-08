@@ -2,13 +2,16 @@
 \frame{\frametitle{Outline}\tableofcontents}
 
 \section{Problem - Nonlinear Real Arithmetic}
+\subsection{Search Space of SMT(NRA)}
 
 \begin{frame}
-    \frametitle{Latex and Beamer}
+    \frametitle{Syntax of SMT(NRA)}
     
-    LaTeX is a high-quality typesetting system; 
-    it includes features designed for the production of 
-    technical and scientific documentation.
+    polynomial: $p ::= x \mid c \mid p + p \mid p - p \mid p \times p$
+
+    atoms: $a ::= b \mid p = 0 \mid p > 0 \mid p < 0$
+
+    formula: $f ::= a \mid \neg f \mid f \wedge f \mid f \vee f $
 
     \vspace{0.4cm}
 
@@ -22,10 +25,12 @@
     
 \end{frame}
 
-\section{Beamer Basic}
+\subsection{Current Existing Methods}
+
+\section{Incremental Computation of Variable Scores}
 \subsection{Hightlight}
 
-\begin{frame}
+\begin{frame} 
     \frametitle{Block and Alert}
 
     \begin{block}{Pythagorean theorem}
@@ -123,7 +128,7 @@
     \end{itemize}
 \end{frame}
 
-\section{Beamer More}
+\section{Temporary Relaxation of Equality Constraints}
 
 \subsection{Split Screen}
 
