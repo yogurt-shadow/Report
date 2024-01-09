@@ -15,31 +15,118 @@
 
     \vspace{0.4cm}
 
-    \pause
+    SMT: Determine whether the formula is satisfied by some assignment (local search focuses), or prove unsat
 
-    Beamer is a LaTeX class to create powerful, 
-    flexible and nice-looking presentations and slides. 
+    \vspace{0.4cm}
+
+    Example:
+    \\
+    $x^2 + y^2 \le 1 \wedge x + y < 1 \wedge x + z > 0$
+    \\
+    assignment with $\left\{x \rightarrow 0, y \rightarrow 0, z \rightarrow 1\right\}$ satisfies all clauses.
+\end{frame}
+
+\begin{frame}{Fragment of Local Search}
+
+    \begin{onlyenv}<1>
+    \begin{algorithm}[H]
+    \SetKwBlock{Begin}{}{}
+    \SetAlgoLined
+    \SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\Input{A set of clauses $F$}
+\Output{An assignment of variables that satisfy $F$, or failure}
+Initialize assignment to variables\;
+\While{$\top$}{
+    \If{all clauses satisfied}{
+        \Return{success with assignment\;}
+    }
+    \If{time or step limit reached}{
+        \Return{failure\;}
+    }
+    Critical move procedure.
+}
+\caption{Basic Fragment of Local Search}
+    \end{algorithm}
+    \end{onlyenv}
     
-    The beamer class is focussed on producing (on-screen) presentations, 
-    along with support material such as handouts and speaker notes.
+    \begin{onlyenv}<2>
+    \begin{algorithm}[H]
+    \SetKwBlock{Begin}{}{}
+        $\mathit{var,new\_value,score} \leftarrow$ best move according to make-break score\;
+    \If{score $>$ 0}{
+        Perform move, assigning $\mathit{var}$ to $\mathit{new\_value}$\;
+    }
+    \Else{
+        Update clause weight according to PAWS scheme\;
+        \Repeat{3 times}{
+            $\mathit{cls} \leftarrow$ random unsatisfied clause\;
+            $\mathit{var,new\_value,score} \leftarrow$ critical move making $\mathit{cls}$ satisfied\;
+            \If{score $\neq$ $-\infty$}{
+                Perform move, assigning $\mathit{var}$ to $\mathit{new\_value}$\;
+            }
+        }
+        \If{no move performed in previous loop}{
+            Change assignment of some variable in some unsatisfied clause\;
+        }
+    }
+    \end{algorithm}
+    \end{onlyenv}
+    \end{frame}
     
+
+\begin{frame}
+    \frametitle{Local Search for SAT and SMT}
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            \diagbox{LS}{Problem}&SAT&SMT\\
+            \hline
+            Operation (Move)&Flip&Critical Move\\
+            \hline
+            Score Definition & \multicolumn{2}{c|}{Weighted unsat clauses}\\
+            \hline
+            Score Computation & Cached score& No Caching, time costly\\
+            \hline 
+            \end{tabular}
+    \end{center}
+
+    \textbf{What LS for SAT brings us: }\\
+    Maintain scoring information after each iteration.\\
+    \textbf{Difficulty:}\\
+    Predetermine critical move shift value.\\
+    \textbf{Our Solution:}\\
+    Introduce Scoring Boundaries.
 \end{frame}
 
 \subsection{Current Existing Methods}
 
 \section{Incremental Computation of Variable Scores}
-\subsection{Hightlight}
+\subsection{Scoring Boundary for Arithmetic Variable}
+
+\begin{frame}{Critical Move Value ? Interval!}
+    Reference introduces multiple values choices for critical move, resulting in different scores.\\
+    Actually, \textbf{interval} brings the difference.
+\end{frame}
 
 \begin{frame} 
-    \frametitle{Block and Alert}
+    \frametitle{Boundary}
 
-    \begin{block}{Pythagorean theorem}
-        \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.6pt}
-        $$a^2 + b^2 = c^2$$
-        % \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.1pt}
-        where c represents the length of the hypotenuse and 
-        a and b the lengths of the triangle's other two sides.
-    \end{block}
+    \textbf{Brief. }Given an arithmetic variable, maintain critical move scores for specific moving intervals.
+    \\
+    \textbf{Definition. } 123
+    \\
+    \textbf{Example. }\\
+    Assume boundary for variable $v$ is
+
+    % \begin{block}{Pythagorean theorem}
+    %     \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.6pt}
+    %     $$a^2 + b^2 = c^2$$
+    %     % \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.1pt}
+    %     where c represents the length of the hypotenuse and 
+    %     a and b the lengths of the triangle's other two sides.
+    % \end{block}
     
     \begin{alertblock}{Remark}
         \begin{itemize}
@@ -47,33 +134,33 @@
             \item the environment here is \alert{alertblock}
         \end{itemize}
     \end{alertblock}
-
 \end{frame}
 
 \begin{frame}
-    \frametitle{Proof}
-
-    \begin{block}{Pythagorean theorem}
-        \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.1pt}
-        $$a^2 + b^2 = c^2$$
-        % \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.2pt}
-    \end{block}
-    
-    \vspace{0.4cm}
-
-    \begin{proof}
-        \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0pt}
-        \begin{align*}
-            &3^2 + 4^2 = 5^2\\
-            &5^2 + 12^2 = 13^2
-        \end{align*}
-        % \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0pt}
-    \end{proof}
+    \frametitle{Boundary Example}
+    Assume boundary for variable $v$ as below:\\
+    \vspace{1cm}
+    \begin{tikzpicture}
+        %画x和y轴坐标
+        \draw[->] (-5.2,0)--(5.2,0);
+        %画刻度
+        \foreach \x in {0,1,...,8}
+        {
+            \draw[xshift=\x cm] (-4,0) -- (-4,0.1);
+        };  
+        %标坐标原点
+        \node[below] at (0.2,0){0};
+        %标x轴刻度值
+        \foreach \x in {-4,-3,...,-1}
+            \node[below] at(\x,0){\x};
+        \foreach \y in {1,2,...,4}
+            \node[below] at(\y,0){\y};
+        \end{tikzpicture}
 \end{frame}
 
-\subsection{Other Environments}
+\subsection{Incremental Computation}
 
-\begin{frame}{Algorithm}
+\begin{frame}{Computation of Boundary (Incremental)}
     \scriptsize
     \begin{algorithm}[H]
         \KwData{this text}
@@ -93,46 +180,11 @@
         \end{algorithm}
 \end{frame}
 
-\begin{frame}[fragile]
-    \frametitle{An Algorithm For Finding Primes Numbers.}
-    \scriptsize
-    \begin{verbatim}
-        int main (void)
-        {
-            std::vector<bool> is_prime (100, true);
-            for (int i = 2; i < 100; i++)
-            if (is_prime[i])
-            {
-                std::cout << i << " ";
-                for (int j = i; j < 100; is_prime [j] = false, j+=i);
-            }
-            return 0;
-        }
-    \end{verbatim}
-
-    \vspace{-0.7cm}
-
-    \begin{uncoverenv}
-    Note the use of \verb|\alert|.
-    \end{uncoverenv}
-\end{frame}
-
-\begin{frame}{More}
-    More environments such as
-
-    \begin{itemize}
-        \item Definition
-        \item lemma
-        \item corollary
-        \item example
-    \end{itemize}
-\end{frame}
-
 \section{Temporary Relaxation of Equality Constraints}
 
-\subsection{Split Screen}
+\subsection{Difficulty in Local Search}
 
-\begin{frame}{Minipage}
+\begin{frame}{Equality Constraints in Local Search}
     \begin{minipage}{0.5\linewidth}
         \begin{figure}[h]
             \includegraphics[width=\textwidth]{imgs/pythagorean.jpg}
@@ -153,7 +205,9 @@
     \end{minipage}
 \end{frame}
 
-\begin{frame}{Columns}
+\subsection{Relaxation Method}
+
+\begin{frame}{Relaxation}
     \begin{columns}
         \column{0.5\textwidth}
         This is a text in first column.
@@ -174,65 +228,17 @@
     \end{columns}
 \end{frame}
 
-\subsection{Table}
-
-\begin{frame}{Create Tables}
-    \begin{center}
-        \begin{table}[!t]  
-            % \caption{Three line}
-            % \label{table_time}
-            \begin{tabular}{ccc}  
-                \toprule   
-                first&second&third\\ 
-                \midrule       
-                1 & 2 & 3 \\ 
-                4 & 5 & 6 \\ 
-                7 & 8 & 9 \\
-                \bottomrule  
-            \end{tabular}
-        \end{table}
-    \end{center}
-\end{frame}
-
-\subsection{Math}
-
-\begin{frame}{Equation1}
-    A matrix in text must be set  smaller:
-    $\bigl(\begin{smallmatrix}
-    a&b \\ c&d
-    \end{smallmatrix} \bigr)$
-    to not increase leading in a portion of text.
-
-    \[ f(n) =
-    \begin{cases}
-        n/2       & \quad \text{if } n \text{ is even}\\
-        -(n+1)/2  & \quad \text{if } n \text{ is odd}
-    \end{cases}
-    \]
-
-    $$50 apples \times 100 apples = lots of apples^2$$
-\end{frame}
-
-\begin{frame}{Equation2}
-    $$\sum_{\substack{0<i<m \\ 0<j<n }} 
-      P(i,j)=\int\limits_a^b\prod P(i,j)$$
-
-    $$P\left(A=2\middle|\frac{A^2}{B}>4\right)$$
-
-    $$( a ), [ b ], \{ c \}, | d |, \| e \|,
-    \langle f \rangle, \lfloor g \rfloor,
-    \lceil h \rceil, \ulcorner i \urcorner$$
-\end{frame}
-
-\begin{frame}{Equation3}
-    $$Q(\alpha)=\alpha_i\alpha_jy_iy_j(x_i\cdot x_j)$$
-
-    $$Q(\alpha)=\alpha^i\alpha^jy^{(i)}y^{(j)}(x^i\cdot x^j)$$
+\begin{frame}{Relaxation (CAD view)}
     
-    $$\Gamma=\beta+\alpha+\gamma+\rho$$
 \end{frame}
 
+\begin{frame}{Restore}
+    
+\end{frame}
 
+\section{Implementation Detail}
+\subsection{Look-ahead}
+\subsection{Other}
 
 \section{Conclusion}
 
