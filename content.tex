@@ -105,143 +105,198 @@ Initialize assignment to variables\;
 \section{Incremental Computation of Variable Scores}
 \subsection{Scoring Boundary for Arithmetic Variable}
 
-\begin{frame}{Critical Move Value ? Interval!}
-    Reference introduces multiple values choices for critical move, resulting in different scores.\\
-    Actually, \textbf{interval} brings the difference.
+\begin{frame}{Make-break Intervals}
+    \textbf{make-break intervals\footfullcite{abs-2303-06676}} \\
+    Combination of (in)feasible intervals of arithmetic varaible $x$ with respect to all clauses.
+
+    \begin{example}
+        Current assignment: $\left\{ x\mapsto 1, y\mapsto 1, z\mapsto 1 \right\}$ \\
+        Calculate infeasible set for each clause.
+        \begin{itemize}
+            \item $x^2+y^2\le 1$ (unsat): $(-\infty, 0) \cup (0, \infty)$.
+            \item $x+y<1$ (unsat): $[0,\infty)$.
+            \item $x+z>0$ (sat): $(-\infty,-1]$.
+        \end{itemize}
+        Combined information: $x$: $(-\infty,-1]\mapsto 0$, $(-1,0)\mapsto 1$, $[0,0]\mapsto 1$, $(0,\infty)\mapsto 0$.
+    \end{example}
+\end{frame}
+
+\begin{frame}{Traditional Computation}
+    \begin{algorithm}[H]
+        \SetKwBlock{Begin}{}{}
+        \SetAlgoLined
+        \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+    \Input{unsat clauses $F$}
+    \Output{Best critical move (variable, value)}
+    \ForEach{variable $v$ in unsat clauses}{
+        \ForEach{unsat clause $c$ with $v$}{        Compute interval-score info of $v$ in $c$.
+        }
+        Combine interval-score information. \\
+        Update best var-value move.
+    }
+    \Return{best critical move}
+    \end{algorithm}
+    
+    \vspace{0.4cm}
+    \textbf{Repeated computation:}\\
+    \begin{itemize}
+        \item variable's (in)feasible set
+        \item clause's sat staus
+    \end{itemize}
+
 \end{frame}
 
 \begin{frame} 
     \frametitle{Boundary}
-
-    \textbf{Brief. }Given an arithmetic variable, maintain critical move scores for specific moving intervals.
-    \\
-    \textbf{Definition. } 123
-    \\
-    \textbf{Example. }\\
-    Assume boundary for variable $v$ is
-
-    % \begin{block}{Pythagorean theorem}
-    %     \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.6pt}
-    %     $$a^2 + b^2 = c^2$$
-    %     % \vspace*{-\baselineskip}\setlength\belowdisplayshortskip{0.1pt}
-    %     where c represents the length of the hypotenuse and 
-    %     a and b the lengths of the triangle's other two sides.
-    % \end{block}
-    
-    \begin{alertblock}{Remark}
+    \textbf{Definition.} A quadruple $\langle \mathit{val}, \mathit{is\_open}, \mathit{is\_make}, \mathit{cid}\rangle$, where $\mathit{val}$ is a real number, $\mathit{is\_open}$ and $\mathit{is\_make}$ are boolean values, and $\mathit{cid}$ is a clause identifier.
+    \vspace{0.4cm}
+    \begin{alertblock}{Meaning}
         \begin{itemize}
-            \item the environment above is \alert{block}
-            \item the environment here is \alert{alertblock}
+            \item $val:$ make-break value.
+            \item $is\_open:$ active or not at $val$ point.
+            \item $is\_make:$ make or break, increase or decrease score.
+            \item $cid:$ causing clause.
         \end{itemize}
     \end{alertblock}
+
+    \textbf{Sorting} First ordered by $val$, then by $is\_open$ ($\bot<\top$).
 \end{frame}
 
 \begin{frame}
-    \frametitle{Boundary Example}
-    Assume boundary for variable $v$ as below:\\
-    \vspace{1cm}
-    \begin{tikzpicture}
-        %画x和y轴坐标
-        \draw[->] (-5.2,0)--(5.2,0);
-        %画刻度
-        \foreach \x in {0,1,...,8}
-        {
-            \draw[xshift=\x cm] (-4,0) -- (-4,0.1);
-        };  
-        %标坐标原点
-        \node[below] at (0.2,0){0};
-        %标x轴刻度值
-        \foreach \x in {-4,-3,...,-1}
-            \node[below] at(\x,0){\x};
-        \foreach \y in {1,2,...,4}
-            \node[below] at(\y,0){\y};
-        \end{tikzpicture}
+    \frametitle{Boundary}
+    Current assignment: $\left\{ x\mapsto 1, y\mapsto 1, z\mapsto 1 \right\}$ \\
+    \begin{itemize}
+        \item $x^2+y^2\le 1$: starting score 0, boundary set $\{(0,\bot,\top,1), (0,\top,\bot,1)\}$, indicating no change for large negative values, \emph{make} at boundary $[0,\cdots$, followed by \emph{break} at boundary $(0,\cdots$.
+        \item $x+y<1$: starting score 3, boundary set $\{(0,\bot,\bot,2)\}$, indicating \emph{make} at large negative values, and \emph{break} at boundary $[0,\dots$.
+        \item $x+z>0$: starting score $-2$, boundary set $\{(-1,\top,\top,3)\}$, indicating \emph{break} at large negative values, and \emph{make} at boundary $(-1,\dots$.
+    \end{itemize}
+    sorted boundary set: $\{(-1,\top,\top,3),(0,\bot,\top,1),(0,\bot,\bot,2),(0,\top,\bot,1)\}$
 \end{frame}
 
 \subsection{Incremental Computation}
 
-\begin{frame}{Computation of Boundary (Incremental)}
-    \scriptsize
-    \begin{algorithm}[H]
-        \KwData{this text}
-        \KwResult{how to write algorithm with \LaTeX2e }
-        initialization\;
-        \While{not at end of this document}{
-            read current\;
-            \eIf{understand}{
-            go to next section\;
-            current section becomes this one\;
-            }{
-            go back to the beginning of current section\;
+\begin{frame}{Boundary Example}
+    boundary set: $\{(-1,\top,\top,3),(0,\bot,\top,1),(0,\bot,\bot,2),(0,\top,\bot,1)\}$
+    \vspace{0.2cm}
+    \begin{center}
+        \begin{tikzpicture}
+            \draw[->] (-2,0)--(2,0);
+            \foreach \x in {1,2}
+            {
+                \draw[xshift=\x cm] (-2,0) -- (-2,0.1);
+            };  
+            \node[below] at (0,0){0};
+            \foreach \x in {-1,0,1} {
+                \node[below] at(\x,0){\x};
             }
+            % starting score
+            \node[below] at (-1.5,0.75){1};
+            \node[below] at (-0.5,0.75){100};
+            \node[below] at (1,0.75){100};
+        \end{tikzpicture}
+    \end{center}
+
+    \textbf{starting score:} Score when $x$ moves to -$\infty$. \\
+    \textbf{Maintain and Change:} We maintain the boundary info for all arithmetic varaibles, unless the neighbour does a critical move.
+\end{frame}
+
+\begin{frame}{Algorithm for computing boundary}
+    \begin{algorithm}[H]
+        \SetKwBlock{Begin}{}{}
+        \SetAlgoLined
+        \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+    \Input{Variable $v$ that is modified}
+    \Output{Make-break score for all variables}
+    $S \leftarrow \{\}$ \tcp*{set of updated variables}
+    \For{clause $\mathit{cls}$ that contains $v$}{
+        \For{variable $v'$ appearing in $\mathit{cls}$}{
+            add $v'$ to $S$\;
+            recompute starting score and boundary of $v'$ with respect to $\mathit{cls}$\;
         }
-        \caption{How to write algorithms
-        (copied from \href{https://en.wikibooks.org/wiki/LaTeX/Algorithms}{here})}
-        \end{algorithm}
+    }
+    \For{variable $v'$ in S}{
+        recompute best critical move and score in terms of boundary information\;
+    }
+    \end{algorithm}
 \end{frame}
 
 \section{Temporary Relaxation of Equality Constraints}
 
 \subsection{Difficulty in Local Search}
 
-\begin{frame}{Equality Constraints in Local Search}
-    \begin{minipage}{0.5\linewidth}
-        \begin{figure}[h]
-            \includegraphics[width=\textwidth]{imgs/pythagorean.jpg}
-        \end{figure}
-    \end{minipage}%
-    \hfill
-    \begin{minipage}{0.4\linewidth}
-        \begin{enumerate}
-            \item item
-            \item another
-            \item more
-            \begin{itemize}
-                \item first
-                \item second
-                \item third
-            \end{itemize}
-        \end{enumerate}
-    \end{minipage}
+\begin{frame}{Previous Algorithm and Difficulty}
+    \textbf{Number complexation in Local Search}
+
+
+    When a variable chooses a complex value, the iteration is much slower, but sometimes we have to ...\\
+    Reference\footfullcite{abs-2303-06676}  ignores equalities constraints due to its accurate value complexation.\\
+    We introduce Relaxation into strick equality constraints, resulting in temporary interval candidate (rather than a point). \\
 \end{frame}
 
 \subsection{Relaxation Method}
 
-\begin{frame}{Relaxation}
-    \begin{columns}
-        \column{0.5\textwidth}
-        This is a text in first column.
-        $$E=mc^2$$
-        \begin{itemize}
-        \item First item
-        \item Second item
-        \end{itemize}
-        
-        \column{0.5\textwidth}
-        \begin{block}{first block}
-            columns achieves splitting the screen
-        \end{block}
-        \begin{block}{second block}
-            stack block in columns
-        \end{block}
-        
-    \end{columns}
+\begin{frame}{Local Search with Relaxation}
+    \scriptsize
+    \begin{algorithm}[H]
+\label{alg:relax}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\Input{A set of clauses $F$}
+\Output{An assignment of variables that satisfy $F$, or failure}
+Initialize assignment to variables\; 
+\While{$\top$}{
+    \If{all clauses satisfied}{
+        $\mathit{success} \leftarrow$ find exact solution\;
+        \If{success}{
+            \Return{success with assignment};
+        }
+        \Else{
+            Restore relaxed constraints to original form\;
+            $\mathit{success} \leftarrow$ find exact solution by limited local search\;
+            \If{success}{
+                \Return{success with assignment};
+            }
+        }
+    }
+    \If{time or step limit reached}{
+        \Return{failure}\;
+    }
+    Proceed traditional local search (slack).
+}
+    \end{algorithm}
 \end{frame}
 
-\begin{frame}{Relaxation (CAD view)}
-    
+\section{Experiment}
+\begin{frame}{Overall Result}
+    \begin{table}[!t]
+        \centering
+        \small
+        \begin{tabular}{c | c | c | c | c | c | c}
+                    Category & \#inst & Z3 & cvc5 & Yices & ~Ours~ & ~Unique~ \\ \hline
+                    20161105-Sturm-MBO & 120 & 0 & 0 & 0 & \textbf{88} & 88 \\
+                    20161105-Sturm-MGC & 2 & \textbf{2} & 0 & 0 & 0 & 0 \\
+                    20170501-Heizmann & 60 & 3 & 1 & 0 & \textbf{8} & 6 \\
+                    20180501-Economics-Mulligan & 93 & \textbf{93} & 89 & 91 & 90 & 0 \\
+                    2019-ezsmt & 61 & \textbf{54} & 51 & 52 & 19 & 0 \\
+                    20200911-Pine & 237 & \textbf{235} & 201 & \textbf{235} & 224 & 0 \\
+                    20211101-Geogebra & 112 & \textbf{109} & 91 & 99 & 101 & 0 \\
+                    20220314-Uncu & 74 & 73 & 66 & \textbf{74} & 70 & 0 \\
+                    LassoRanker & 351 & 155 & \textbf{304} & 122 & 272 & 13\\
+                    UltimateAtomizer & 48 & \textbf{41} & 34 & 39 & 27 & 2 \\
+                    hycomp & 492 & \textbf{311} & 216 & 227 & 304 & 11 \\
+                    kissing & 42 & \textbf{33} & 17 & 10 & \textbf{33} & 1 \\
+                    meti-tarski & 4391 & \textbf{4391} & 4345 & 4369 & 4351 & 0 \\
+                    zankl & 133 & 70 & 61 & 58 & \textbf{100} & 27 \\ \hline
+                    Total & 6216 & 5570 & 5476 & 5376 & \textbf{5687} & 148 
+                \end{tabular}
+        % \bottomrule
+        % \multicolumn{4}{l}{\small $\bullet$ Solved by ours.}\\
+        \end{table}
 \end{frame}
 
-\begin{frame}{Restore}
-    
-\end{frame}
-
-\section{Implementation Detail}
-\subsection{Look-ahead}
-\subsection{Other}
-
-\section{Conclusion}
-
-\begin{frame}{End}
-    The last page.
+\begin{frame}
+    \frametitle{References}
+\printbibliography
 \end{frame}
