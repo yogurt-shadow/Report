@@ -5,3 +5,7 @@
 *.gz
 *.toc
 *.vrb
+*.bbl
+*.blg
+*.run.xml
+
