@@ -26,9 +26,7 @@
     assignment with $\left\{x \rightarrow 0, y \rightarrow 0, z \rightarrow 1\right\}$ satisfies all clauses.
 \end{frame}
 
-\begin{frame}{Fragment of Local Search}
-
-    \begin{onlyenv}<1>
+\begin{frame}{Fragment of Local Search (1)}
     \begin{algorithm}[H]
     \SetKwBlock{Begin}{}{}
     \SetAlgoLined
@@ -46,33 +44,39 @@ Initialize assignment to variables\;
     }
     Critical move procedure.
 }
-\caption{Basic Fragment of Local Search}
+    \caption{Basic Fragment of Local Search\footfullcite{CaiLZ22}}
     \end{algorithm}
-    \end{onlyenv}
-    
-    \begin{onlyenv}<2>
+\end{frame}
+
+\begin{frame}{Fragment of Local Search (2)}
     \begin{algorithm}[H]
     \SetKwBlock{Begin}{}{}
+    \begin{minipage}{0.45\textwidth}
+        \caption{First Part of the Algorithm}
         $\mathit{var,new\_value,score} \leftarrow$ best move according to make-break score\;
     \If{score $>$ 0}{
-        Perform move, assigning $\mathit{var}$ to $\mathit{new\_value}$\;
+        Move $\mathit{var}$ to $\mathit{new\_value}$\;
     }
     \Else{
-        Update clause weight according to PAWS scheme\;
+        Update clause weight\;
+    }
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \caption{Second Part of the Algorithm}
         \Repeat{3 times}{
             $\mathit{cls} \leftarrow$ random unsatisfied clause\;
             $\mathit{var,new\_value,score} \leftarrow$ critical move making $\mathit{cls}$ satisfied\;
             \If{score $\neq$ $-\infty$}{
-                Perform move, assigning $\mathit{var}$ to $\mathit{new\_value}$\;
+                move $\mathit{var}$ to $\mathit{new\_value}$\;
             }
         }
-        \If{no move performed in previous loop}{
-            Change assignment of some variable in some unsatisfied clause\;
+        \If{no move performed}{
+            Move some variables in unsatisfied clauses\;
         }
-    }
+    \end{minipage}
     \end{algorithm}
-    \end{onlyenv}
-    \end{frame}
+\end{frame}
     
 
 \begin{frame}
@@ -197,7 +201,7 @@ Initialize assignment to variables\;
         \end{tikzpicture}
     \end{center}
 
-    \textbf{starting score:} Score when $x$ moves to -$\infty$. \\
+    \textbf{Starting score:} Score when $x$ moves to -$\infty$. \\
     \textbf{Maintain and Change:} We maintain the boundary info for all arithmetic varaibles, unless the neighbour does a critical move.
 \end{frame}
 
@@ -222,7 +226,7 @@ Initialize assignment to variables\;
     \end{algorithm}
 \end{frame}
 
-\section{Temporary Relaxation of Equality Constraints}
+\section{Temporary Relaxation of Equality (Non-Strick) Constraints}
 
 \subsection{Difficulty in Local Search}
 
@@ -235,7 +239,38 @@ Initialize assignment to variables\;
     We introduce Relaxation into strick equality constraints, resulting in temporary interval candidate (rather than a point). \\
 \end{frame}
 
+\begin{frame}{Algebraic Numbers Situation}
+    \begin{definition}[Complexity of values]
+        We define a preorder $\prec_c$ on algebraic numbers as follows. $x\prec_c y$ if $x$ is rational and $y$ is irrational, or if both $x$ and $y$ are rational numbers, and the denominator of $x$ is less than that of $y$. We write $x \sim_c y$ if neither $x\prec_c y$ nor $y\prec_c x$.
+        \end{definition}
+
+    Algebraic (irrational) numbers have the largest complexity.
+\end{frame}
 \subsection{Relaxation Method}
+\begin{frame}{Relaxation}
+    \begin{Example}
+        Given assignment $\left\{x\mapsto 1, y\mapsto 1\right\}$
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            $z^2 = x^2 + y^3$
+        \end{minipage}
+        % \hfill
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            $z^3 \ge 5 x^2 + y \vee z^3 \le 3x + 3y$
+        \end{minipage}
+        \end{Example}
+        \vspace{0.6cm}
+        Both situations force $z$ to an irrational number.
+
+    \begin{alertblock}{Relaxation}
+    \begin{itemize}
+        \item If the constraint is of the form $p=0$, it is relaxed into the pair of inequalities $p<\epsilon_p$ and $p>-\epsilon_p$.
+
+        \item If the constraint is of the form $p\ge 0$, it is relaxed into $p>-\epsilon_p$. Likewise, if the constraint is of the form $p\le 0$, it is relaxed into $p<\epsilon_p$.
+    \end{itemize}
+    \end{alertblock}
+\end{frame}
 
 \begin{frame}{Local Search with Relaxation}
     \scriptsize
@@ -296,7 +331,11 @@ Initialize assignment to variables\;
         \end{table}
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Comparison}
+
+\end{frame}
+
+\begin{frame}[allowframebreaks]
     \frametitle{References}
 \printbibliography
 \end{frame}
