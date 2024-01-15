@@ -33,7 +33,7 @@
     \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
 \Input{A set of clauses $F$}
-\Output{An assignment of variables that satisfy $F$, or failure}
+\Output{An assignment satisfying $F$, or failure}
 Initialize assignment to variables\;
 \While{$\top$}{
     \If{all clauses satisfied}{
@@ -109,9 +109,26 @@ Initialize assignment to variables\;
 \section{Incremental Computation of Variable Scores}
 \subsection{Scoring Boundary for Arithmetic Variable}
 
+\begin{frame}{Infeasible Set}
+    \begin{definition}
+        \textbf{infeasible set\footfullcite{JovanovicM12}} of a clause $c$ with respect to an assignment $\mathit{asgn}$ is the set of values that the variables in $c$ can take under $\mathit{asgn}$ such that $c$ is unsatisfied.
+    \end{definition}
+    \begin{example}
+        Current assignment: $\left\{ x\mapsto 1\right\}$ \\
+        Calculate infeasible set for $y$:
+        \begin{itemize}
+            \item $x^2+y^2\le 1$ : $(-\infty, 0) \cup (0, \infty)$.
+            \item $x+y<1$ : $[0,\infty)$.
+        \end{itemize}
+    \end{example}
+    If we choose values from infeasible set, the satisfied clause will be unsatisfied, which changes the whole score.
+\end{frame}
+
 \begin{frame}{Make-break Intervals}
-    \textbf{make-break intervals\footfullcite{abs-2303-06676}} \\
-    Combination of (in)feasible intervals of arithmetic varaible $x$ with respect to all clauses.
+    \begin{definition}
+        \textbf{make-break interval}\footfullcite{abs-2303-06676} is a 
+    combination of (in)feasible intervals of arithmetic varaible $x$ with respect to \textbf{all clauses}.
+    \end{definition}
 
     \begin{example}
         Current assignment: $\left\{ x\mapsto 1, y\mapsto 1, z\mapsto 1 \right\}$ \\
@@ -164,7 +181,7 @@ Initialize assignment to variables\;
         \end{itemize}
     \end{alertblock}
 
-    \textbf{Sorting} First ordered by $val$, then by $is\_open$ ($\bot<\top$).
+    \textbf{Sorting:} First ordered by $val$, then by $is\_open$ ($\bot<\top$).
 \end{frame}
 
 \begin{frame}
@@ -172,32 +189,38 @@ Initialize assignment to variables\;
     Current assignment: $\left\{ x\mapsto 1, y\mapsto 1, z\mapsto 1 \right\}$ \\
     \begin{itemize}
         \item $x^2+y^2\le 1$: starting score 0, boundary set $\{(0,\bot,\top,1), (0,\top,\bot,1)\}$, indicating no change for large negative values, \emph{make} at boundary $[0,\cdots$, followed by \emph{break} at boundary $(0,\cdots$.
-        \item $x+y<1$: starting score 3, boundary set $\{(0,\bot,\bot,2)\}$, indicating \emph{make} at large negative values, and \emph{break} at boundary $[0,\dots$.
-        \item $x+z>0$: starting score $-2$, boundary set $\{(-1,\top,\top,3)\}$, indicating \emph{break} at large negative values, and \emph{make} at boundary $(-1,\dots$.
+        \item $x+y<1$: starting score 1, boundary set $\{(0,\bot,\bot,1)\}$, indicating \emph{make} at large negative values, and \emph{break} at boundary $[0,\dots$.
+        \item $x+z>0$: starting score $-1$, boundary set $\{(-1,\top,\top,1)\}$, indicating \emph{break} at large negative values, and \emph{make} at boundary $(-1,\dots$.
     \end{itemize}
-    sorted boundary set: $\{(-1,\top,\top,3),(0,\bot,\top,1),(0,\bot,\bot,2),(0,\top,\bot,1)\}$
+    sorted boundary set: $\{(-1,\top,\top,1),(0,\bot,\top,1),(0,\bot,\bot,1),(0,\top,\bot,1)\}$
 \end{frame}
 
 \subsection{Incremental Computation}
 
 \begin{frame}{Boundary Example}
-    boundary set: $\{(-1,\top,\top,3),(0,\bot,\top,1),(0,\bot,\bot,2),(0,\top,\bot,1)\}$
+    boundary set: $\{(-1,\top,\top,1),(0,\bot,\top,1),(0,\bot,\bot,1),(0,\top,\bot,1)\}$
     \vspace{0.2cm}
     \begin{center}
         \begin{tikzpicture}
-            \draw[->] (-2,0)--(2,0);
-            \foreach \x in {1,2}
+            \draw[->] (-4,0)--(4,0);
+            \foreach \x in {0,2}
             {
                 \draw[xshift=\x cm] (-2,0) -- (-2,0.1);
             };  
             \node[below] at (0,0){0};
-            \foreach \x in {-1,0,1} {
-                \node[below] at(\x,0){\x};
+            \foreach \x in {-1,0} {
+                \node[below] at(2 *\x,0){\x};
             }
             % starting score
-            \node[below] at (-1.5,0.75){1};
-            \node[below] at (-0.5,0.75){100};
-            \node[below] at (1,0.75){100};
+            \node[below] at (-3,0.75){0};
+            \node[below] at (-2,0.75){1};
+            \node[below] at (0,0.75){1};
+            \node[below] at (2,0.75){0};
+
+            \node[below] at (-3,-0.5){0+1-1};
+            \node[below] at (-1.75,-0.5){0+1};
+            \node[below] at (0,-0.5){1+1-1};
+            \node[below] at (2,-0.5){1-1};
         \end{tikzpicture}
     \end{center}
 
@@ -230,22 +253,15 @@ Initialize assignment to variables\;
 
 \subsection{Difficulty in Local Search}
 
-\begin{frame}{Previous Algorithm and Difficulty}
-    \textbf{Number complexation in Local Search}
-
-
-    When a variable chooses a complex value, the iteration is much slower, but sometimes we have to ...\\
-    Reference\footfullcite{abs-2303-06676}  ignores equalities constraints due to its accurate value complexation.\\
-    We introduce Relaxation into strick equality constraints, resulting in temporary interval candidate (rather than a point). \\
-\end{frame}
-
-\begin{frame}{Algebraic Numbers Situation}
-    \begin{definition}[Complexity of values]
+\begin{frame}{Complexity of Values}
+    \begin{definition}
         We define a preorder $\prec_c$ on algebraic numbers as follows. $x\prec_c y$ if $x$ is rational and $y$ is irrational, or if both $x$ and $y$ are rational numbers, and the denominator of $x$ is less than that of $y$. We write $x \sim_c y$ if neither $x\prec_c y$ nor $y\prec_c x$.
-        \end{definition}
+    \end{definition}
+    Previous work  ignores equalities constraints\footfullcite{LiXZ23}, or only consider multi-linear (one-degree)examples\footfullcite{abs-2303-06676}.\\
 
-    Algebraic (irrational) numbers have the largest complexity.
+    \textbf{Our Solution:} Introducing relaxation, temporary enlarge the point irrational interval
 \end{frame}
+
 \subsection{Relaxation Method}
 \begin{frame}{Relaxation}
     \begin{Example}
@@ -268,8 +284,29 @@ Initialize assignment to variables\;
         \item If the constraint is of the form $p=0$, it is relaxed into the pair of inequalities $p<\epsilon_p$ and $p>-\epsilon_p$.
 
         \item If the constraint is of the form $p\ge 0$, it is relaxed into $p>-\epsilon_p$. Likewise, if the constraint is of the form $p\le 0$, it is relaxed into $p<\epsilon_p$.
+        \item \textbf{Slacked var:} the var that is being assigned.
     \end{itemize}
     \end{alertblock}
+\end{frame}
+
+\begin{frame}{Restore}
+    \begin{algorithm}[H]
+        \SetKwBlock{Begin}{}{}
+        \SetAlgoLined
+        \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+    \Input{slacked clauses}
+    \Output{succeed or not}
+    \For{each slacked clause $\mathit{cls}$}{
+        $v \leftarrow$ slacked variable in $\mathit{cls}$\;
+        $accu\_val \leftarrow inf\_set(cls)$\;
+        move $v$ to $accu\_val$\;
+    }
+    \For{variable $v'$ in slacked clauses}{
+        recompute best critical move and score in terms of boundary information\;
+    }
+    \Return number of unsat clauses == 0
+    \end{algorithm}
 \end{frame}
 
 \begin{frame}{Local Search with Relaxation}
@@ -304,6 +341,24 @@ Initialize assignment to variables\;
 \end{frame}
 
 \section{Experiment}
+
+\begin{frame}{Implementation Detail}
+    \textbf{code available at:} \url{https://github.com/yogurt-shadow/LS_NRA}
+
+    \textbf{Preprocessing} 
+    \begin{itemize}
+        \item Combine constraints $p\ge 0$ and $p\le 0$ into equality $p=0$.
+        \item Eliminate variable $x$ in an equation of the form $c\cdot x+q=0$, where $c$ is a constant and $q$ is a polynomial with degree at most 1 and containing at most 2 variables.
+    \end{itemize}
+
+    \textbf{Restart mechanism} Two-level restart mechanism with two parameters $T_1 = 100$ and $T_2 = 100$.
+
+    \begin{itemize}
+        \item \textbf{Minor restart:} randomly change one of the variables in one of the unsatisfied clauses.
+        \item \textbf{Major restart:} reset the value of all variables.
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Overall Result}
     \begin{table}[!t]
         \centering
@@ -329,10 +384,6 @@ Initialize assignment to variables\;
         % \bottomrule
         % \multicolumn{4}{l}{\small $\bullet$ Solved by ours.}\\
         \end{table}
-\end{frame}
-
-\begin{frame}{Comparison}
-
 \end{frame}
 
 \begin{frame}[allowframebreaks]
