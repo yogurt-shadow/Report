@@ -2,7 +2,7 @@
 \frame{\frametitle{Outline}\tableofcontents}
 
 \section{Problem - Nonlinear Real Arithmetic}
-\subsection{Search Space of SMT(NRA)}
+\subsection{Syntax of SMT(NRA)}
 
 \begin{frame}
     \frametitle{Syntax of SMT(NRA)}
@@ -104,7 +104,7 @@ Initialize assignment to variables\;
     Introduce Scoring Boundaries.
 \end{frame}
 
-\subsection{Current Existing Methods}
+\subsection{Fragment of Local Search}
 
 \section{Incremental Computation of Variable Scores}
 \subsection{Scoring Boundary for Arithmetic Variable}
@@ -251,7 +251,7 @@ Initialize assignment to variables\;
 
 \section{Temporary Relaxation of Equality (Non-Strick) Constraints}
 
-\subsection{Difficulty in Local Search}
+\subsection{Value Complexity in Local Search}
 
 \begin{frame}{Complexity of Values}
     \begin{definition}
@@ -384,6 +384,81 @@ Initialize assignment to variables\;
         % \bottomrule
         % \multicolumn{4}{l}{\small $\bullet$ Solved by ours.}\\
         \end{table}
+\end{frame}
+
+\begin{frame}{Scatter Plot}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.45\textwidth]{scatter_z3b.png}\qquad
+        \includegraphics[width=0.45\textwidth]{scatter_cvc5b.png}
+        \caption{Scatter plots of running time vs. Z3 and cvc5.}
+        \label{fig:scatter_plots}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+    \begin{table}[!t]
+        \small
+        \centering
+        \begin{tabular}{c | c | c | c | c }
+        Category & ~\#inst~ & ~Incremental~ & ~Naive~ & ~Limit-45~ \\ \hline
+        20161105-Sturm-MBO & 120 & 88 & 85 & 85 \\
+        20161105-Sturm-MGC & 2 & 0 & 0 & 0 \\
+        20170501-Heizmann & 60 & 8 & 5 & 5 \\
+        20180501-Economics-Mulligan & 93 & 90 & 89 & 89 \\
+        2019-ezsmt & 61 & 19 & 19 & 15 \\
+        20200911-Pine & 237 & 224 & 222 & 222 \\
+        20211101-Geogebra & 112 & 101 & 101 & 101 \\
+        20220314-Uncu & 74 & 70 & 70 & 70 \\
+        LassoRanker & 351 & 272 & 264 & 269 \\
+        UltimateAtomizer & 48 & 27 & 26 & 26 \\
+        hycomp & 492 & 304 & 298 & 298 \\
+        kissing & 42 & 33 & 32 & 33 \\
+        meti-tarski & 4391 & 4351 & 4352 & 4352 \\
+        zankl & 133 & 100 & 100 & 100 \\ \hline
+        Total & 6216 & 5687 & 5663 & 5665
+        \end{tabular}
+        \vspace{2mm}
+        \caption{Comparison of incremental computation}
+        \label{tab:compare-incremental}
+        \end{table}
+\end{frame}
+
+\begin{frame}
+    \begin{table}[!t]
+        \small
+        \centering
+        \begin{tabular}{c | c | c | c | c }
+        Category & ~\#inst~ & ~Relaxation~ & ~Threshold~ & ~NoOrder~ \\ \hline
+        20161105-Sturm-MBO & 120 & 88 & 100 & 99 \\
+        20161105-Sturm-MGC & 2 & 0 & 0 & 0 \\
+        20170501-Heizmann & 60 & 8 & 9 & 3 \\
+        20180501-Economics-Mulligan & 93 & 90 & 89 & 86 \\
+        2019-ezsmt & 61 & 19 & 19 & 19 \\
+        20200911-Pine & 237 & 224 & 223 & 222 \\
+        20211101-Geogebra & 112 & 101 & 98 & 92 \\
+        20220314-Uncu & 74 & 70 & 70 & 70 \\
+        LassoRanker & 351 & 272 & 277 & 278 \\
+        UltimateAtomizer & 48 & 27 & 26 & 20 \\
+        hycomp & 492 & 304 & 211 & 164 \\
+        kissing & 42 & 33 & 31 & 27 \\
+        meti-tarski & 4391 & 4351 & 4353 & 4360 \\
+        zankl & 133 & 100 & 100 & 100 \\ \hline
+        Total & 6216 & 5687 & 5606 & 5540
+        \end{tabular}
+        \vspace{2mm}
+        \caption{Comparison of temporary relaxation of constraints}
+        \label{tab:compare-relaxation}
+        \end{table}
+\end{frame}
+
+\begin{frame}{Future Work}
+    \begin{itemize}
+        \item Integrate into z3++ solver \url{https://z3-plus-plus.github.io/}
+        \item Cacheing about cylindrical cells by CAD (we enter the same cell multiple times, how can we find that?)
+        \item incorporate with other algorithms, like MCSAT or varaible substitution.
+        \item used for nonlinear optimization
+    \end{itemize}
 \end{frame}
 
 \begin{frame}[allowframebreaks]
